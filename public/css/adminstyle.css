@@ -1,0 +1,15 @@
+/* Style for rows in the sortable table, except for those with the class "home" */
+.sorting tr:not(.home) {
+    cursor: move; /* Change cursor to indicate draggable */
+}
+
+/* Style for rows with the class "home" to visually indicate non-draggable */
+.sorting tr.home {
+    pointer-events: none; /* Disable pointer events */
+    cursor: default; /* Use default cursor */
+}
+
+/* Style for the placeholder element while dragging */
+.ui-state-highlight {
+    border: 1px dashed #ccc; /* Apply dashed border */
+}
