@@ -103,6 +103,111 @@ router.post('/reorder-pages', async function(req, res) {
   }
 });
 
+// Get edit page
+router.get('/edit-page/:slug', function(req, res) {
+  Page.findOne({slug: req.params.slug})
+    .then(page => {
+      if (!page) {
+        // Handle the case where no page with the given slug is found
+        return res.status(404).send("Page not found");
+      }
+
+      res.render('admin/edit_page', {
+        title: page.title,
+        slug: page.slug,
+        content: page.content,
+        id: page._id
+      });
+    })
+    .catch(err => {
+      // Handle errors
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
+});
+
+
+
+// Post edit-page
+router.post('/edit-page/:slug', [
+  check('title', 'Title must not be empty').not().isEmpty(),
+  check('content', 'Content must not be empty').not().isEmpty(),
+], function(req, res) {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    // If there are validation errors, render the form again with error messages
+    res.render('admin/edit_page', {
+      errors: errors.array(),
+      title: req.body.title,
+      slug: req.body.slug,
+      content: req.body.content,
+      id: req.body.id // Define id from the request body
+    });
+  } else {
+    // If validation passes, proceed with your logic
+    const id = req.body.id; // Define id from the request body
+    Page.findOne({ slug: req.body.slug, _id: { '$ne': id } })
+      .then(page => {
+        if (page) {
+          req.flash('danger', 'Page slug exists, choose another.');
+          res.redirect('/admin/pages/edit-page/' + req.body.slug); // Redirect back to the edit page with the slug
+        } else {
+          return Page.findById(id); // Find the page by ID
+        }
+      })
+      .then(page => {
+        if (!page) {
+          // Handle the case where no page with the given ID is found
+          return res.status(404).send("Page not found");
+        }
+      
+        // Update page properties
+        page.title = req.body.title;
+        page.slug = req.body.slug;
+        page.content = req.body.content;
+      
+        // Save the updated page
+        return page.save()
+          .then(updatedPage => {
+            // Redirect to the admin pages route after successfully updating the page
+            req.flash('success', 'Page edited');
+            res.redirect('/admin/pages/edit-page/' + updatedPage.slug); // Redirect to the edit page
+          });
+      })
+      .catch(err => {
+        // Handle errors
+        console.error(err);
+        req.flash('danger', 'Error editing page.');
+        res.redirect('/admin/pages');
+      });
+  }
+});
+
+
+// Delete Page
+
+router.get('/delete-page/:id', function(req, res) {
+  Page.findOneAndDelete({ _id: req.params.id })
+    .exec()
+    .then(deletedPage => {
+      if (deletedPage) {
+        req.flash('success', 'Page deleted');
+      } else {
+        req.flash('error', 'Page not found');
+      }
+      res.redirect('/admin/pages');
+    })
+    .catch(err => {
+      console.error(err);
+      req.flash('error', 'Failed to delete page');
+      res.redirect('/admin/pages');
+    });
+});
+
+
+
+
 
 // Exports
 module.exports = router;
