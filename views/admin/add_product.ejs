@@ -1,0 +1,61 @@
+<%- include('../layouts/adminheader') %>
+<div class="container">
+  <h2 class="price-title">Add a product</h2>
+  <a href="/admin/products" class="btn btn-primary">Back to all the products</a>
+  <br><br>
+  <form action="/admin/products/add-product" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input type="text" class="form-control" name="title" value="" placeholder="Title">
+    </div>
+  
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea class="form-control" name="desc" rows="5" placeholder="Description"></textarea>
+    </div>
+
+    
+    <div class="form-group">
+      <label for="category">Category</label>
+      <select name="category" class="form-control">
+        <% categories.forEach(function(cat) { %>
+          <option value="<%= cat.slug %>"><%= cat.title %></option>
+        <% }); %>
+      </select>
+    </div>
+    
+
+
+    <div class="form-group">
+      <label for="price">Price</label>
+      <input type="text" class="form-control" name="price" value="" placeholder="Price">
+    </div>
+
+    <div class="form-group">
+      <label for="image">Image</label>
+      <input type="file" class="form-control" name="image" id="img">
+      <img src="#" id="imgPreview" alt="No image">
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function readURL(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        $('#imgPreview').attr('src', e.target.result).width(100).height(100);
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  $("#img").change(function () {
+    readURL(this);
+  });
+</script>
+
+<%- include('../layouts/adminfooter') %>

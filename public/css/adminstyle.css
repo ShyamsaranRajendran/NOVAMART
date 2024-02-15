@@ -13,3 +13,13 @@
 .ui-state-highlight {
     border: 1px dashed #ccc; /* Apply dashed border */
 }
+
+#imgpreview{
+    margin: 200px;
+    border: 2px solid black;
+}
+
+#noimage{
+    width: 100px;
+    height: 100px;
+}

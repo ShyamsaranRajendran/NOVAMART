@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
-
+const flash = require('connect-flash');
 // Get Page model
 var Page = require('../models/pages.js'); // Assuming correct path and filename
 
@@ -34,8 +34,7 @@ router.get('/add-page', function(req, res) {
 
 // Post add-page
 router.post('/add-page', [
-  check('title', 'Title must not be empty').not().isEmpty(),
-  check('content', 'Content must not be empty').not().isEmpty(),
+  check('title', 'Title must not be empty').not().isEmpty()
 ], function(req, res) {
   const errors = validationResult(req);
 
