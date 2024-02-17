@@ -10,7 +10,7 @@ const unlink = util.promisify(fs.unlink);
 // Get product model
 var Product = require('../models/product.js'); 
 var Category = require('../models/category.js'); 
-
+const uploadGallery = require('./GalleryStore');
 // Get product index 
 router.get('/', async (req, res, next) => {
     try {
@@ -37,7 +37,7 @@ router.get('/add-product', async (req, res) => {
 // Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'public/product_images');
+    cb(null, 'public/product_images/');
   },
   filename: function (req, file, cb) {
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
@@ -167,7 +167,7 @@ router.get('/edit-product/:_id', async function(req, res) {
         category: product.category.replace(/\s+/g , '-').toLowerCase(),
         price: product.price,
         image: product.image,
-        galleryImages: galleryImages,
+        galleryImages: galleryImages, // Include gallery images here
         product: product // Include the product object here
       });
     });
@@ -176,9 +176,6 @@ router.get('/edit-product/:_id', async function(req, res) {
     res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 
 
@@ -197,24 +194,28 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
       return res.redirect('/admin/products');
     }
 
+    // Check if a new image is uploaded
+    if (req.file) {
+      // Delete the existing image if it exists
+      if (product.image) {
+        const imagePath = path.join('public/product_images', productId, product.image);
+        fs.unlinkSync(imagePath);
+      }
+
+      // Set the new image file name
+      product.image = req.file.filename;
+
+      // Move the uploaded image to the destination directory
+      const destinationDir = path.join('public/product_images', productId);
+      await mkdirp(destinationDir);
+      fs.renameSync(req.file.path, path.join(destinationDir, req.file.filename));
+    }
+
     // Update the product fields
     product.title = title;
     product.desc = desc;
     product.price = price;
     product.category = category;
-
-    // Check if a new image is uploaded and it's different from the existing one
-    if (req.file && req.file.filename !== product.image) {
-      // Create the destination directory if it doesn't exist
-      const destinationDir = `public/product_images/${productId}`;
-      await mkdirp(destinationDir);
-
-      // Move the uploaded image to the destination directory
-      fs.renameSync(req.file.path, `${destinationDir}/${req.file.filename}`);
-
-      // Set the new image file name
-      product.image = req.file.filename;
-    }
 
     // Save the updated product
     await product.save();
@@ -228,25 +229,78 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-// Delete Product
+// POST route to handle updating the product gallery
+router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const images = req.files; // Array of uploaded files
 
-router.get('/delete-product/:id', function(req, res) {
-  const productId = req.params.id;
+    // Find the product by its ID
+    const product = await Product.findById(productId);
 
-  Product.findByIdAndDelete(productId)
-    .then(deletedProduct => {
-      if (deletedProduct) {
-        req.flash('success', 'Product deleted');
-      } else {
-        req.flash('error', 'Product not found');
-      }
-      res.redirect('/admin/products');
-    })
-    .catch(err => {
-      console.error(err);
-      req.flash('error', 'Failed to delete product');
-      res.redirect('/admin/products');
+    if (!product) {
+      return res.status(404).send('Product not found.');
+    }
+
+    // Check if there are uploaded images
+    if (!images || images.length === 0) {
+      return res.status(400).send('No images uploaded.');
+    }
+
+    // Save the filenames to the database
+    images.forEach(async (image) => {
+      const newGalleryImage = {
+        filename: image.filename
+      };
+      product.galleryImages.push(newGalleryImage);
     });
+
+    // Save the updated product with gallery images
+    await product.save();
+
+    res.status(200).send('Gallery images uploaded and stored successfully.');
+  } catch (error) {
+    console.error('Error uploading gallery images:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Delete Product
+router.get('/delete-product/:id', async function(req, res) {
+  try {
+    const productId = req.params.id;
+
+    // Find the product by its ID
+    const product = await Product.findById(productId);
+
+    // Check if the product exists
+    if (!product) {
+      req.flash('error', 'Product not found');
+      return res.redirect('/admin/products');
+    }
+
+    // Retrieve the image file name
+    const imageName = product.image;
+
+    // Delete the product from the database
+    await Product.findByIdAndDelete(productId);
+
+    // If the product had an associated image
+    if (imageName) {
+      // Construct the path to the image directory
+      const imageDir = path.join('public/product_images', productId);
+
+      // Delete the image file and its directory
+      fs.rmdirSync(imageDir, { recursive: true });
+    }
+
+    req.flash('success', 'Product deleted');
+    res.redirect('/admin/products');
+  } catch (error) {
+    console.error(error);
+    req.flash('error', 'Failed to delete product');
+    res.redirect('/admin/products');
+  }
 });
 
 

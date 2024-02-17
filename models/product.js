@@ -1,5 +1,12 @@
 var mongoose = require('mongoose');
 
+var GalleryImageSchema = mongoose.Schema({
+    filename: {
+        type: String,
+        required: true
+    }
+});
+
 // product schema
 var productSchema = mongoose.Schema({
     title: {
@@ -14,7 +21,6 @@ var productSchema = mongoose.Schema({
         required: true
     },
     category: {
-        
         type: String,
         required: true
     },
@@ -26,6 +32,7 @@ var productSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    galleryImages: [GalleryImageSchema]
 });
 
 var Product = module.exports = mongoose.model('product', productSchema);
