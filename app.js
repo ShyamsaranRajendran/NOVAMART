@@ -7,7 +7,8 @@ const session = require('express-session');
 const { body } = require('express-validator');
 const flash = require('connect-flash');
 const expressMessages = require('express-messages');
-
+const Page = require('./models/pages');
+const Category = require('./models/category');
 
 
 
@@ -26,8 +27,30 @@ app.set('view engine', 'ejs');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.locals.errors=null;
 
-//middleware body parser
+//get page model
+Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
+    .then(pages => {
+          app.locals.pages =pages;
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
+
+//get category model
+
+Category.find({}).exec() // Remove the callback function from exec()
+    .then(categories => {
+          app.locals.categories =categories;
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
+
+//Middleware body parser
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -57,8 +80,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //
 
+
 // Importing routers
 const pagesRouter = require('./routes/pages');
+const products = require('./routes/products');
 const adminPagesRouter = require('./routes/admin_pages');
 const adminCategories = require('./routes/admin_categories.js');
 const adminProducts = require('./routes/admin_products.js');
@@ -69,6 +94,7 @@ app.use('/', pagesRouter);
 app.use('/admin/pages', adminPagesRouter);
 app.use('/admin/categories',adminCategories);
 app.use('/admin/products',adminProducts);
+app.use('/client', products);
 
 const port = 3000;
 app.listen(port, function () {

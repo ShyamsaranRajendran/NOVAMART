@@ -63,6 +63,15 @@ router.post('/add-page', [
 
           newPage.save()
             .then(() => {
+              Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
+              .then(pages => {
+                res.app.locals.pages =pages;
+               })
+              .catch(err => {
+                  console.error(err);
+                    res.status(500).send('Internal Server Error');
+                  });
+
               req.flash('success', 'Page added.');
               res.redirect('/admin/pages'); // Assuming a redirect to the pages route
             })
@@ -94,6 +103,14 @@ router.post('/reorder-pages', async function(req, res) {
           page.sorting = index + 1;
           await page.save();
       }
+      Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
+        .then(pages => {
+          res.app.locals.pages =pages;
+         })
+        .catch(err => {
+            console.error(err);
+              res.status(500).send('Internal Server Error');
+            });
       console.log('Pages reordered successfully.');
       res.sendStatus(200); // Send success response
   } catch (error) {
@@ -101,6 +118,7 @@ router.post('/reorder-pages', async function(req, res) {
       res.status(500).send('Internal Server Error'); // Send error response
   }
 });
+
 
 // Get edit page
 router.get('/edit-page/:slug', function(req, res) {
@@ -165,7 +183,14 @@ router.post('/edit-page/:slug', [
         page.title = req.body.title;
         page.slug = req.body.slug;
         page.content = req.body.content;
-      
+        Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
+        .then(pages => {
+          res.app.locals.pages =pages;
+         })
+        .catch(err => {
+            console.error(err);
+              res.status(500).send('Internal Server Error');
+            });
         // Save the updated page
         return page.save()
           .then(updatedPage => {
@@ -191,6 +216,14 @@ router.get('/delete-page/:id', function(req, res) {
     .exec()
     .then(deletedPage => {
       if (deletedPage) {
+        Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
+        .then(pages => {
+          res.app.locals.pages =pages;
+         })
+        .catch(err => {
+            console.error(err);
+              res.status(500).send('Internal Server Error');
+            });
         req.flash('success', 'Page deleted');
       } else {
         req.flash('error', 'Page not found');

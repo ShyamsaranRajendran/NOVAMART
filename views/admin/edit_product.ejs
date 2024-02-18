@@ -39,22 +39,37 @@
 
     <button class="btn btn-primary" type="submit">Submit</button>
   </form>
-
+  <br>
+  <br><br>
   <!-- Separate form for editing gallery images -->
   <form action="/admin/products/edit-product/<%= product.id %>/gallery" method="post" enctype="multipart/form-data">
+    
     <div class="form-group">
       <label for="gallery">Gallery Images</label>
       <!-- Input for adding new gallery images -->
       <input type="file" class="form-control" name="gallery" id="gallery" multiple>
-      <!-- Display existing gallery images -->
-      <% product.galleryImages.forEach(function(image) { %>
-        <img src="/product_images/<%= product.id %>/gallery/<%= image %>" class="gallery-image" alt="Gallery Image">
-      <% }); %>
+    
     </div>
+    
      
     <button class="btn btn-primary" type="submit">Update Gallery</button>
   </form>
+  <br>
+  <br>
+  <form action="/admin/products/delete-image/<%= product.id %>/<%= image.id %>"   method="post" >
+      <!-- Display existing gallery images -->
+      <div class="gallery">
+        <% product.galleryImages.forEach(function(image) { %>
+          <div class="gallery-item" data-productid="<%= product.id %>" data-imageid="<%= image._id %>">
+            <img src="/product_images/<%= product.id %>/gallery/<%= image.filename %>" alt="Gallery Image">
+            <button class="delete-image">Delete</button>
+          </div>
+        <% }); %>
+      </div>
+  </form>
 </div>
+
+<%- include('../layouts/adminfooter') %>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -73,6 +88,30 @@
   $("#img").change(function () {
     readURL(this);
   });
+
+  $(document).on('click', '.delete-image', async function(event) {
+  // Get the parent gallery-item element
+  const galleryItem = $(this).closest('.gallery-item');
+
+  // Get the productId and imageId from data attributes
+  const productId = galleryItem.data('productid');
+  const imageId = galleryItem.data('imageid'); // Make sure this gets the correct value
+
+  try {
+    // Send AJAX request to delete image
+    const response = await fetch(`/admin/products/delete-image/${productId}/${imageId}`, {
+      method: 'POST' // Changed to POST method
+    });
+    if (response.ok) {
+      // Remove the deleted image from the DOM
+      galleryItem.remove();
+    } else {
+      console.error('Failed to delete image');
+    }
+  } catch (error) {
+    console.error('Error deleting image:', error);
+  }
+});
 </script>
 
-<%- include('../layouts/adminfooter') %>
+</body>

@@ -3,7 +3,7 @@ var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const flash = require('connect-flash');
 
-
+const Category = require('../models/category'); // Import the Category model
 
 //Get Categories index
 
@@ -31,11 +31,6 @@ router.get('/add-category', function(req, res) {
       slug: slug
   });
 });
-
-
-
-const Category = require('../models/category'); // Import the Category model
-const category = require('../models/category');
 
 // Post add-category
 router.post('/add-category', [
@@ -66,6 +61,14 @@ router.post('/add-category', [
 
           newCategory.save()
             .then(() => {
+              Category.find({}).exec() // Remove the callback function from exec()
+    .then(categories => {
+          res.app.locals.categories =categories;
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
               req.flash('success', 'Category added.');
               res.redirect('/admin/categories'); // Redirect to the category management page
             })
@@ -138,6 +141,14 @@ router.post('/edit-category/:id', [
         return category.save();
       })
       .then(updatedCategory => {
+        Category.find({}).exec() // Remove the callback function from exec()
+    .then(categories => {
+          res.app.locals.categories =categories;
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
         // Redirect to the edit category page after successfully updating the category
         req.flash('success', 'Category edited');
         res.redirect('/admin/categories/edit-category/' + updatedCategory.id);
@@ -159,6 +170,14 @@ router.get('/delete-category/:id', function(req, res) {
     .exec()
     .then(deletedcategory => {
       if (deletedcategory) {
+        Category.find({}).exec() // Remove the callback function from exec()
+        .then(categories => {
+              res.app.locals.categories =categories;
+        })
+        .catch(err => {
+          console.error(err);
+          res.status(500).send('Internal Server Error');
+        });
         req.flash('success', 'category deleted');
       } else {
         req.flash('error', 'category not found');

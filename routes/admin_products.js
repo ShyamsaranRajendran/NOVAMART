@@ -96,6 +96,7 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
     // Create a new product instance
     const newProduct = new Product({
       title: title,
+      slug: title.toLowerCase(),
       desc: desc,
       price: price,
       image: image,
@@ -167,8 +168,8 @@ router.get('/edit-product/:_id', async function(req, res) {
         category: product.category.replace(/\s+/g , '-').toLowerCase(),
         price: product.price,
         image: product.image,
-        galleryImages: galleryImages, // Include gallery images here
-        product: product // Include the product object here
+        galleryImages: galleryImages, 
+        product: product 
       });
     });
   } catch (error) {
@@ -213,6 +214,7 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
 
     // Update the product fields
     product.title = title;
+    product.slug= title.toLowerCase();
     product.desc = desc;
     product.price = price;
     product.category = category;
@@ -265,7 +267,56 @@ router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), asyn
   }
 });
 
-// Delete Product
+// POST route to delete an image
+router.post('/delete-image/:productId/:imageId', async (req, res) => {
+  const { productId, imageId } = req.params;
+
+  try {
+    // Find the product by ID
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Find the image to be deleted
+    const image = product.galleryImages.find(img => img._id.toString() === imageId);
+
+    if (!image) {
+      return res.status(404).json({ message: 'Image not found' });
+    }
+
+    // Get the filename of the image
+    const filename = image.filename;
+
+    // Remove the image from the product's galleryImages array
+    product.galleryImages = product.galleryImages.filter(img => img._id.toString() !== imageId);
+
+    // Save the updated product
+    await product.save();
+
+    // Construct the path to the image file
+    const imagePath = path.join(__dirname, '..', 'public', 'product_images', productId, 'gallery', filename);
+
+    // Check if the file exists before attempting to delete it
+    if (fs.existsSync(imagePath)) {
+      // Delete the image file
+      fs.unlinkSync(imagePath);
+      console.log('Image file deleted:', imagePath); // Log success message
+    } else {
+      console.log('Image file not found:', imagePath); // Log file not found
+    }
+
+    res.status(200).json({ message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+// Delete Product and Associated Images
 router.get('/delete-product/:id', async function(req, res) {
   try {
     const productId = req.params.id;
@@ -282,6 +333,9 @@ router.get('/delete-product/:id', async function(req, res) {
     // Retrieve the image file name
     const imageName = product.image;
 
+    // Retrieve the gallery images
+    const galleryImages = product.galleryImages;
+
     // Delete the product from the database
     await Product.findByIdAndDelete(productId);
 
@@ -290,18 +344,29 @@ router.get('/delete-product/:id', async function(req, res) {
       // Construct the path to the image directory
       const imageDir = path.join('public/product_images', productId);
 
-      // Delete the image file and its directory
-      fs.rmdirSync(imageDir, { recursive: true });
+      // Check if the image directory exists before attempting to delete
+      if (fs.existsSync(imageDir)) {
+        // Delete the image file and its directory
+        await fs.promises.rm(imageDir, { recursive: true });
+      }
     }
 
-    req.flash('success', 'Product deleted');
+    // Delete associated gallery images and their directories
+    await Promise.all(galleryImages.map(async (image) => {
+      const imageDir = path.join('public/product_images', productId, 'gallery', image.filename);
+      // Check if the image directory exists before attempting to delete
+      if (fs.existsSync(imageDir)) {
+        await fs.promises.rm(imageDir, { recursive: true });
+      }
+    }));
+
+    req.flash('success', 'Product and associated images deleted');
     res.redirect('/admin/products');
   } catch (error) {
     console.error(error);
-    req.flash('error', 'Failed to delete product');
+    req.flash('error', 'Failed to delete product and associated images');
     res.redirect('/admin/products');
   }
 });
-
 
 module.exports = router;
