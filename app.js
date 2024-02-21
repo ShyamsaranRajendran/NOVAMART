@@ -78,12 +78,17 @@ app.use(function (req, res, next) {
 // Use express-validator middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//
+
+app.use((req, res, next) => {
+  res.locals.cart = req.session.cart || {};
+  next();
+});
 
 
 // Importing routers
 const pagesRouter = require('./routes/pages');
 const products = require('./routes/products');
+const cart = require('./routes/cart');
 const adminPagesRouter = require('./routes/admin_pages');
 const adminCategories = require('./routes/admin_categories.js');
 const adminProducts = require('./routes/admin_products.js');
@@ -95,6 +100,7 @@ app.use('/admin/pages', adminPagesRouter);
 app.use('/admin/categories',adminCategories);
 app.use('/admin/products',adminProducts);
 app.use('/client', products);
+app.use('/user/cart', cart);
 
 const port = 3000;
 app.listen(port, function () {

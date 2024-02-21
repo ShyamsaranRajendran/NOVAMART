@@ -51,4 +51,6 @@
     border-radius: 5px;
     cursor: pointer;
   }
-  
+  table.alignmiddle td{
+    vertical-align: middle !important;
+   }

@@ -20,7 +20,6 @@
     <div class="collapse navbar-collapse" id="navbar">
       <ul class="navbar-nav">
         <% pages.forEach(function(page) { %>
-
           <% if (page.slug == "home") { %>
             <li class="nav-item">
               <a class="nav-link" href="/"><%= page.title %></a>
@@ -30,8 +29,19 @@
                 <a class="nav-link" href="<%= page.slug %>"><%= page.title %></a>
               </li>
               <% } %>
-         
         <% }); %>
+      </ul>
+
+      <ul class="nav navbar-nav ml-auto">
+        <li>
+          <a href="/user/cart/checkout">My Cart 
+            <% if (cart && cart.length) { %>
+                {<%= cart.length %>}
+            <% } else { %>
+                {0}
+            <% } %>
+        </a>
+        </li>
       </ul>
     </div>
   </nav>

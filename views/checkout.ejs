@@ -1,0 +1,57 @@
+<%- include('layouts/header') %>
+
+<% if(typeof cart !== "undefined" && cart.length > 0) { %>
+    <h1 class="page-title">My Cart</h1>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% var total = 0 %>
+                <% cart.forEach(function(product) { %> 
+                    <% var subtot = parseFloat(product.price * product.qty).toFixed(2) %>
+                    <% total += +subtot %>
+                    <tr>
+                        <td><img class="cpi img-fluid" src="<%= product.image %> " alt=""></td>
+                        <td><%= product.title %></td>
+                        <td><%= product.price %></td>
+                        <td><%= product.qty %></td>
+                        <td>
+                            <a href="/update/<%= product.title %>?action=add">+</a>&nbsp;
+                            <br>
+                            <a href="user/cart/update/<%= product.title %>?action=remove">-</a>&nbsp;
+                            <br>
+                            <a href="user/cart/update/<%= product.title %>?action=clear">Clear</a>
+                        </td>
+                        <td><%= subtot %></td>
+                    </tr>
+                <% }) %>
+                <tr>
+                    <td colspan="5" class="text-right"><b>Total:</b></td>
+                    <td><%= parseFloat(total).toFixed(2) %></td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="text-right">
+                        <a class="btn btn-danger" href="/clear">Clear Cart</a>
+                    </td>
+                    <tr>
+                    <td colspan="6" class="text-right">
+                        <a class="btn btn-primary" href="user/cart/buynow">Buy Now</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+<% } else { %>
+    <h3 class="text-center">Your Cart is Empty</h3>
+<% } %>
+
+<%- include('layouts/footer') %>
