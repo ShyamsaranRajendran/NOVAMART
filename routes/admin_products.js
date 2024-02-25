@@ -6,17 +6,19 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const util = require('util');
 const unlink = util.promisify(fs.unlink);
+var auth = require('../config/auth');
+var isAdmin = auth.isAdmin;
 
 // Get product model
 var Product = require('../models/product.js'); 
 var Category = require('../models/category.js'); 
 const uploadGallery = require('./GalleryStore');
 // Get product index 
-router.get('/', async (req, res, next) => {
+router.get('/',isAdmin, async (req, res, next) => {
     try {
         const count = await Product.countDocuments({});
         const products = await Product.find({}).exec();
-        res.render('admin/products', { products, count });
+        res.render('admin/products', { products, count ,user: req.user});
     } catch (error) {
         console.error('Error counting products:', error);
         res.status(500).send('Internal Server Error');
@@ -24,10 +26,10 @@ router.get('/', async (req, res, next) => {
 });
 
 // Get add product
-router.get('/add-product', async (req, res) => {
+router.get('/add-product',isAdmin, async (req, res) => {
     try {
         const categories = await Category.find().exec();
-        res.render('admin/add_product', { categories });
+        res.render('admin/add_product', { categories,user: req.user });
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).send('Internal Server Error');
@@ -66,7 +68,7 @@ function checkFileType(file, cb) {
 
 
 
-router.post('/add-product', upload.single('image'), async (req, res) => {
+router.post('/add-product',isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { title, desc, price, category } = req.body;
     const image = req.file ? req.file.filename : '';
@@ -136,7 +138,7 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
 
 
 // Get edit product
-router.get('/edit-product/:_id', async function(req, res) {
+router.get('/edit-product/:_id',isAdmin, async function(req, res) {
   try {
     var errors;
     if (req.session.errors) errors = req.session.errors;
@@ -169,7 +171,8 @@ router.get('/edit-product/:_id', async function(req, res) {
         price: product.price,
         image: product.image,
         galleryImages: galleryImages, 
-        product: product 
+        product: product ,
+        user: req.user,
       });
     });
   } catch (error) {
@@ -181,7 +184,7 @@ router.get('/edit-product/:_id', async function(req, res) {
 
 
 // Post edit-product
-router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
+router.post('/edit-product/:id',isAdmin, upload.single('image'), async (req, res) => {
   try {
     const productId = req.params.id;
     const { title, desc, price, category } = req.body;
@@ -232,7 +235,7 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
 });
 
 // POST route to handle updating the product gallery
-router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), async (req, res) => {
+router.post('/edit-product/:id/gallery',isAdmin, uploadGallery.array('gallery', 5), async (req, res) => {
   try {
     const productId = req.params.id;
     const images = req.files; // Array of uploaded files
@@ -246,7 +249,8 @@ router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), asyn
 
     // Check if there are uploaded images
     if (!images || images.length === 0) {
-      return res.status(400).send('No images uploaded.');
+      req.flash('danger','No image uploaded');
+      return res.redirect('/admin/products//edit-product/' + productId)
     }
 
     // Save the filenames to the database
@@ -259,16 +263,15 @@ router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), asyn
 
     // Save the updated product with gallery images
     await product.save();
-
-    res.status(200).send('Gallery images uploaded and stored successfully.');
-  } catch (error) {
+    return res.redirect('/admin/products//edit-product/' + productId)
+   } catch (error) {
     console.error('Error uploading gallery images:', error);
     res.status(500).send('Internal Server Error');
   }
 });
 
 // POST route to delete an image
-router.post('/delete-image/:productId/:imageId', async (req, res) => {
+router.post('/delete-image/:productId/:imageId',isAdmin, async (req, res) => {
   const { productId, imageId } = req.params;
 
   try {
@@ -317,7 +320,7 @@ router.post('/delete-image/:productId/:imageId', async (req, res) => {
 
 
 // Delete Product and Associated Images
-router.get('/delete-product/:id', async function(req, res) {
+router.get('/delete-product/:id',isAdmin, async function(req, res) {
   try {
     const productId = req.params.id;
 

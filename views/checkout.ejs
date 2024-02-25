@@ -25,11 +25,11 @@
                         <td><%= product.price %></td>
                         <td><%= product.qty %></td>
                         <td>
-                            <a href="/update/<%= product.title %>?action=add">+</a>&nbsp;
+                            <a href="/user/cart/update/<%= product.title %>?action=add">+</a>&nbsp;
                             <br>
-                            <a href="user/cart/update/<%= product.title %>?action=remove">-</a>&nbsp;
+                            <a href="/user/cart/update/<%= product.title %>?action=remove">-</a>&nbsp;
                             <br>
-                            <a href="user/cart/update/<%= product.title %>?action=clear">Clear</a>
+                            <a href="/user/cart/update/<%= product.title %>?action=clear">Clear</a>
                         </td>
                         <td><%= subtot %></td>
                     </tr>
@@ -40,18 +40,62 @@
                 </tr>
                 <tr>
                     <td colspan="6" class="text-right">
-                        <a class="btn btn-danger" href="/clear">Clear Cart</a>
-                    </td>
-                    <tr>
-                    <td colspan="6" class="text-right">
-                        <a class="btn btn-primary" href="user/cart/buynow">Buy Now</a>
+                        <a class="btn btn-danger clearcart" href="/user/cart/clear">Clear Cart</a>
+                        <a class="btn btn-primary" href="/user/cart/buynow">Buy Now</a>
                     </td>
                 </tr>
             </tbody>
         </table>
+        <form class="pp" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+   <input type="hidden" name="cmd" value="_cart">
+   <input type="hidden" name="upload" value="1">
+   <input type="hidden" name="business" value="jultranet-facilitator@gmail.com">
+   <% var num=0; %>
+   <% cart.forEach(function(p){ %>
+   <% num++; %>
+   <input type="hidden" name="item_name_<%= num %>" value="<%= p.title %>">
+   <input type="hidden" name="amount_<%= num %>" value="<%= p.price %>">
+   <input type="hidden" name="quantity_<%= num %>" value="<%= p.qty %>">
+   <% }); %>
+   <input type="hidden" name="currency_code" value="USD">
+   <input type="hidden" name="amount" value="<%= total %>">
+   <input type="submit" value="PayPal">
+</form>
+
+<br>
+<br>
+
     </div>
 <% } else { %>
     <h3 class="text-center">Your Cart is Empty</h3>
 <% } %>
 
 <%- include('layouts/footer') %>
+<script>
+    $(function(){
+        $('a.clearcart').on('click', function(){
+            if(!confirm('Confirm Clear'))
+                return false;
+        });
+
+        $('a.btn.btn-primary').on('click', function(event) {
+            event.preventDefault(); 
+
+            $('.ajaxbg').show();
+
+            // Perform the AJAX request to /user/cart/buynow
+            $.get('/user/cart/buynow')
+                .done(function(response) {
+                    // On success, submit the PayPal form
+                    $('form.pp').submit();
+                })
+                .fail(function(error) {
+                    // On failure, log the error and hide the loading spinner
+                    console.error('Error:', error);
+                    $('.ajaxbg').hide();
+                });
+        });
+    });
+</script>
+
+

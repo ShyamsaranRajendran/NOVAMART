@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "connect-flash": "^0.1.1",
     "core-js": "^3.35.1",
@@ -25,6 +26,8 @@
     "mongoose": "^8.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.0.2",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "resize-img": "^2.0.0",
     "sharp": "^0.33.2",
     "validator": "^13.11.0"

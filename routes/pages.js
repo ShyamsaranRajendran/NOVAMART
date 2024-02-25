@@ -12,6 +12,7 @@ router.get('/',async function(req,res){
         res.render('index', {
             title: page.title,
             content: page.content,
+            user: req.user,
             page: page // Pass the page variable to the template
         });
     } catch (error) {
@@ -36,6 +37,7 @@ router.get('/:slug', async function(req, res) {
         res.render('index', {
             title: page.title,
             content: page.content,
+            user: req.user,
             page: page // Pass the page variable to the template
         });
     } catch (error) {

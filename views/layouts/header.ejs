@@ -6,61 +6,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+ 
+  </div>
   <nav class="navbar navbar-expand-lg navbar-light bg-dark">
-    <a class="navbar-brand" href="#">Project name</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="container">
+      <a class="navbar-brand" href="#">Project name</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navbar">
-      <ul class="navbar-nav">
-        <% pages.forEach(function(page) { %>
-          <% if (page.slug == "home") { %>
-            <li class="nav-item">
-              <a class="nav-link" href="/"><%= page.title %></a>
-            </li>
+      <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto">
+          <% pages.forEach(function(page) { %>
+            <% if (page.slug == "home") { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/"><%= page.title %></a>
+              </li>
             <% } else { %>
               <li class="nav-item">
-                <a class="nav-link" href="<%= page.slug %>"><%= page.title %></a>
+                <a class="nav-link" href="/<%= page.slug %>"><%= page.title %></a>
               </li>
-              <% } %>
-        <% }); %>
-      </ul>
-
-      <ul class="nav navbar-nav ml-auto">
-        <li>
-          <a href="/user/cart/checkout">My Cart 
-            <% if (cart && cart.length) { %>
-                {<%= cart.length %>}
-            <% } else { %>
-                {0}
             <% } %>
-        </a>
-        </li>
-      </ul>
+          <% }); %>
+        </ul>
+
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/user/cart/checkout">
+              My Cart 
+              <% if (cart && cart.length) { %>
+                (<%= cart.length %>)
+              <% } else { %>
+                (0)
+              <% } %>
+            </a>
+          </li>
+          <% if(user) { %> 
+            <li class="nav-item">
+              <a class="nav-link" href="/user/logout">Hi, <%= user.username %> (logout)</a>
+            </li>
+          <% } else { %> 
+            <li class="nav-item">
+              <a class="nav-link" href="/user/register">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/user/login">Log in</a>
+            </li>
+          <% } %>
+          <% if(user && user.admin == 1) { %> 
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/pages">Admin Area</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
     </div>
   </nav>
-<div class="container">
+
+  <div class="container">
     <%= messages('messages', locals) %>
-
-
-
+    <% if(errors) { %>
+      <% errors.forEach(function(error) { %>
+        <div class="alert alert-danger">
+          <%= error.msg %>
+        </div>
+      <% }); %>
+    <% } %>
     <div class="row">
       <div class="col-xs-12 col-md-3">
-        <h3>Categories</h3>
+        <h3 class="mb-3">Categories</h3>
         <ul class="list-group">
           <li class="list-group-item"><a href="/client/products">All Products</a></li>
-          <% categories.forEach(function(cat){  %> 
+          <% categories.forEach(function(cat) { %> 
             <li class="list-group-item"><a href="/client/products/<%= cat.slug %>"><%= cat.title %></a></li>
           <% }); %>
         </ul>
       </div>
       <div class="col-xs-12 col-md-1"></div>
       <div class="col-xs-12 col-md-8">
+        <!-- Content goes here -->
       
-    

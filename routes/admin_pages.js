@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const flash = require('connect-flash');
+var auth = require('../config/auth');
+var isAdmin = auth.isAdmin;
 // Get Page model
 var Page = require('../models/pages.js'); // Assuming correct path and filename
 
-router.get('/', function(req, res) {
+router.get('/',isAdmin, function(req, res) {
   Page.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
     .then(pages => {
       res.render('admin/pages', {
@@ -20,7 +22,7 @@ router.get('/', function(req, res) {
 
 // Get add page
 
-router.get('/add-page', function(req, res) {
+router.get('/add-page',isAdmin, function(req, res) {
   var title = "";
   var slug = "";
   var content = "";
@@ -33,7 +35,7 @@ router.get('/add-page', function(req, res) {
 });
 
 // Post add-page
-router.post('/add-page', [
+router.post('/add-page',isAdmin, [
   check('title', 'Title must not be empty').not().isEmpty()
 ], function(req, res) {
   const errors = validationResult(req);
@@ -93,7 +95,7 @@ router.post('/add-page', [
 
 
 //Post Recoder pages
-router.post('/reorder-pages', async function(req, res) {
+router.post('/reorder-pages',isAdmin, async function(req, res) {
   var ids = req.body['id[]'];
 
   try {
@@ -121,7 +123,7 @@ router.post('/reorder-pages', async function(req, res) {
 
 
 // Get edit page
-router.get('/edit-page/:slug', function(req, res) {
+router.get('/edit-page/:slug',isAdmin, function(req, res) {
   Page.findOne({slug: req.params.slug})
     .then(page => {
       if (!page) {
@@ -146,7 +148,7 @@ router.get('/edit-page/:slug', function(req, res) {
 
 
 // Post edit-page
-router.post('/edit-page/:slug', [
+router.post('/edit-page/:slug',isAdmin, [
   check('title', 'Title must not be empty').not().isEmpty(),
   check('content', 'Content must not be empty').not().isEmpty(),
 ], function(req, res) {
@@ -159,7 +161,8 @@ router.post('/edit-page/:slug', [
       title: req.body.title,
       slug: req.body.slug,
       content: req.body.content,
-      id: req.body.id // Define id from the request body
+      id: req.body.id // Define id from the request body,
+      
     });
   } else {
     // If validation passes, proceed with your logic
@@ -211,7 +214,7 @@ router.post('/edit-page/:slug', [
 
 // Delete Page
 
-router.get('/delete-page/:id', function(req, res) {
+router.get('/delete-page/:id', isAdmin,function(req, res) {
   Page.findOneAndDelete({ _id: req.params.id })
     .exec()
     .then(deletedPage => {

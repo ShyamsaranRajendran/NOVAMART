@@ -4,14 +4,17 @@ var Product = require('../models/product.js');
 const Category = require('../models/category'); // Import the Category model
 const { fstat } = require('fs-extra');
 const fs=require('fs');
+var auth = require('../config/auth');
+var isUser = auth.isUser;
 //get all products
-router.get('/products', async function(req, res) {
+router.get('/products', isUser,async function(req, res) {
     try {
         const products = await Product.find(); // Find all products
 
         res.render('all_products', {
             title: 'All Products',
-            products: products // Pass the products array to the template
+            products: products ,// Pass the products array to the template
+            user: req.user,
         });
     } catch (error) {
         console.error('Error finding products:', error);
@@ -42,7 +45,8 @@ router.get('/products/:category', async function(req, res) {
         // Render the view with the category title and products
         res.render('cat_products', {
             title: c.title,
-            products: products
+            products: products,
+            user: req.user
         });
     } catch (error) {
         console.error('Error finding products:', error);
@@ -55,7 +59,7 @@ router.get('/products/:category/:product', async function(req, res) {
     try {
         var galleryImages = null;
         const product = await Product.findOne({ slug: req.params.product }).exec();
-
+        const loggedIn = (req.isAuthenticated()) ? true :false
         if (!product) {
             return res.status(404).send('Product not found');
         }
@@ -67,7 +71,9 @@ router.get('/products/:category/:product', async function(req, res) {
         res.render('product', {
             title: product.title,
             p: product,
-            galleryImages: galleryImages
+            galleryImages: galleryImages,
+            loggedIn: loggedIn,
+            user: req.user,
         });
     } catch (error) {
         console.error(error);

@@ -23,6 +23,14 @@
         <li class="nav-item"><a class="nav-link" href="/admin/products">Products</a></li>
 
       </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Client page</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="#" onclick="confirmLogout()">Logout</a>
+        </li>
+         </ul>
     </div>
   </nav>
 
@@ -36,5 +44,13 @@
       <% }); %>
     <% } %>
   </div>
+  <script>
+    function confirmLogout() {
+  if (confirm("Are you sure you want to log out?")) {
+    window.location.href = "/user/logout";
+  }
+}
+
+  </script>
 </body>
 

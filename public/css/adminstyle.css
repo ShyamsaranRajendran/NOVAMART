@@ -5,7 +5,6 @@
 
 /* Style for rows with the class "home" to visually indicate non-draggable */
 .sorting tr.home {
-    pointer-events: none; /* Disable pointer events */
     cursor: default; /* Use default cursor */
 }
 

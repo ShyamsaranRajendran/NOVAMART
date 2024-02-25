@@ -2,12 +2,13 @@ var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const flash = require('connect-flash');
-
+var auth = require('../config/auth');
+var isAdmin = auth.isAdmin;
 const Category = require('../models/category'); // Import the Category model
 
 //Get Categories index
 
-router.get('/', function(req, res) {
+router.get('/', isAdmin,function(req, res) {
   Category.find()
    .then(categories => {
        res.render("admin/categories", {
@@ -22,7 +23,7 @@ router.get('/', function(req, res) {
 
 //Get add Category
 
-router.get('/add-category', function(req, res) {
+router.get('/add-category',isAdmin, function(req, res) {
   var title = "";
   var slug = "";
 
@@ -33,7 +34,7 @@ router.get('/add-category', function(req, res) {
 });
 
 // Post add-category
-router.post('/add-category', [
+router.post('/add-category', isAdmin,[
   check('title', 'Title must not be empty').not().isEmpty()
 ], function(req, res) {
   const errors = validationResult(req);
@@ -88,7 +89,7 @@ router.post('/add-category', [
 });
 
 // Get edit category
-router.get('/edit-category/:id', function(req, res) {
+router.get('/edit-category/:id',isAdmin, function(req, res) {
   Category.findById(req.params.id)
     .then(category => {
       if (!category) {
@@ -109,7 +110,7 @@ router.get('/edit-category/:id', function(req, res) {
 });
 
 // Post edit-category
-router.post('/edit-category/:id', [
+router.post('/edit-category/:id',isAdmin, [
   check('title', 'Title must not be empty').not().isEmpty()
 ], function(req, res) {
   const errors = validationResult(req);
@@ -165,7 +166,7 @@ router.post('/edit-category/:id', [
 
 // Delete Page
 
-router.get('/delete-category/:id', function(req, res) {
+router.get('/delete-category/:id',isAdmin, function(req, res) {
   Category.findOneAndDelete({ _id: req.params.id })
     .exec()
     .then(deletedcategory => {

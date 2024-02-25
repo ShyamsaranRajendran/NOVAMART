@@ -9,7 +9,7 @@ const flash = require('connect-flash');
 const expressMessages = require('express-messages');
 const Page = require('./models/pages');
 const Category = require('./models/category');
-
+const passport=require('passport');
 
 
 mongoose.connect(config.database);
@@ -81,14 +81,29 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   res.locals.cart = req.session.cart || {};
+  res.locals.user = req.user || null;
   next();
 });
+
+//Passport Middleware
+app.use(passport.initialize());
+app.use(function(req, res, next) {
+  res.locals.messages = require('express-messages')(req, res);
+  next();
+});
+
+//Passport Config
+require('./config/passport')(passport);
+//Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 // Importing routers
 const pagesRouter = require('./routes/pages');
 const products = require('./routes/products');
 const cart = require('./routes/cart');
+const users = require('./routes/user');
 const adminPagesRouter = require('./routes/admin_pages');
 const adminCategories = require('./routes/admin_categories.js');
 const adminProducts = require('./routes/admin_products.js');
@@ -101,6 +116,7 @@ app.use('/admin/categories',adminCategories);
 app.use('/admin/products',adminProducts);
 app.use('/client', products);
 app.use('/user/cart', cart);
+app.use('/user', users);
 
 const port = 3000;
 app.listen(port, function () {

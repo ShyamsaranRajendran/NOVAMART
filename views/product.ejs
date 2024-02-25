@@ -2,11 +2,6 @@
 <!-- Link to FancyBox CSS file -->
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
 
-<!-- Link to FancyBox JS file -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
-
-
-
 <div class="container">
   <div class="row">
     <h1 class="page-header"><%= p.title %></h1>
@@ -18,7 +13,11 @@
     <div class="col-xs-12 col-md-7">
       <p class="product-description"><%= p.desc %></p>
       <p class="product-price"><%= parseFloat(p.price).toFixed(2) %></p>
+      <% if(loggedIn) { %> 
       <p><a href="/user/cart/add-to-cart/<%= p.slug %>" class="add-to-cart-button">Add to cart</a></p>
+    <% } else { %>
+      <p>You must be logged in to purchase items.</p>
+      <% } %>
     </div>
 
     <div class="col-xs-12">
@@ -26,8 +25,8 @@
         <% galleryImages.forEach(function(image){ %>
         <% if (image != 'thumbs') { %>
         <li>
-          <a data-fancybox="gallery" href="/product_images/<%= p.id %>/gallery/<%= image %>">
-            <img src="/product_images/<%= p.id %>/gallery/<%= image %>" alt="">
+          <a data-fancybox="gallery" href="/product_images/<%= p._id %>/gallery/<%= image %>">
+            <img src="/product_images/<%= p._id %>/gallery/<%= image %>" alt="">
           </a>
         </li>
         <% } %>
@@ -38,3 +37,13 @@
 </div>
 
 <%- include('layouts/footer') %>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+     $("[data-fancybox]").fancybox({
+
+      });
+  });
+</script>
